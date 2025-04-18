@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deal Timer</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .deal-timer-container {
+            background-color: #fff;
+            padding: 30px 50px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        #deal-timer {
+            font-size: 32px;
+            color: #d9534f;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        #resetDealBtn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #5bc0de;
+            color: white;
+            font-size: 16px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #resetDealBtn:hover {
+            background-color: #d8841d;
+        }
+
+        #feedbackMessage {
+            margin-top: 20px;
+            color: #28a745;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="deal-timer-container">
+        <h2>🔥 Deal Ends In:</h2>
+        <div id="deal-timer">Loading...</div>
+        <button id="resetDealBtn">🔁 Reset Deal</button>
+        <div id="feedbackMessage"></div>  <!-- Feedback message -->
+    </div>    
+
+    <script>
+        const timerElement = document.getElementById("deal-timer");
+        const clear_deal = document.getElementById('resetDealBtn');
+        const feedbackMessage = document.getElementById("feedbackMessage");
+
+        // Function to get or set deal end time
+        function getDealEndTime() {
+            const savedEndTime = localStorage.getItem("dealEndTime");
+
+            if (savedEndTime) {
+                return new Date(savedEndTime); // use saved value
+            } else {
+                const newEndTime = new Date();
+                newEndTime.setMinutes(newEndTime.getMinutes() + 10); // Set deal to end in 10 minutes
+                localStorage.setItem("dealEndTime", newEndTime.toISOString());
+                return newEndTime;
+            }
+        }
+
+        // Get the deal end time (either from storage or newly set)
+        const dealEndTime = getDealEndTime();
+
+        // Update timer every second
+        function updateTimer() {
+            const now = new Date().getTime();
+            const timeLeft = dealEndTime - now;
+
+            if (timeLeft > 0) {
+                const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+                timerElement.textContent =
+                    `${String(hours).padStart(2, '0')}:` +
+                    `${String(minutes).padStart(2, '0')}:` +
+                    `${String(seconds).padStart(2, '0')}`;
+            } else {
+                timerElement.textContent = "Deal has ended!";
+                localStorage.removeItem("dealEndTime"); // Clear expired deal time
+            }
+        }
+
+        // Start the timer update
+        const timerInterval = setInterval(updateTimer, 1000);
+        updateTimer(); // Initial call
+
+        // Reset timer functionality
+        clear_deal.addEventListener('click', () => {
+            if (confirm("Are you sure you want to reset the deal timer?")) {
+                localStorage.removeItem("dealEndTime");
+                feedbackMessage.textContent = "Deal timer has been reset!";
+                setTimeout(()=>{
+                    location.reload(); // Reload page to reset timer
+                },1000)
+            }
+        });
+    </script>
+</body>
+</html>
